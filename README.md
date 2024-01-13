@@ -3,12 +3,6 @@
  <a target="_blank" href="https://github.com/gngpp/fcsrv/blob/main/LICENSE">
   <img src="https://img.shields.io/badge/license-MIT-blue.svg"/>
  </a>
-  <a href="https://github.com/gngpp/fcsrv/releases">
-    <img src="https://img.shields.io/github/release/gngpp/fcsrv.svg?style=flat">
-  </a>
-  </a><a href="https://github.com/gngpp/fcsrv/releases">
-    <img src="https://img.shields.io/github/downloads/gngpp/fcsrv/total?style=flat">
-  </a>
 
 # fcsrv
 
