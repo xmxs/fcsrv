@@ -4,7 +4,7 @@ pub(super) fn update() -> crate::Result<()> {
     use self_update::update::UpdateStatus;
     let status = self_update::backends::github::Update::configure()
         .repo_owner("gngpp")
-        .repo_name("funny")
+        .repo_name("fcsrv")
         .bin_name("fcsrv")
         .target(self_update::get_target())
         .show_output(true)
