@@ -9,6 +9,7 @@ use image::DynamicImage;
 use reqwest::StatusCode;
 use tokio::sync::OnceCell;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use warp::filters::body::BodyDeserializeError;
 use warp::reject::{Reject, Rejection};
 use warp::reply::Reply;
 
@@ -153,21 +154,24 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
 
     if err.is_not_found() {
         code = StatusCode::NOT_FOUND;
-        message = "Not Found";
+        message = "Not Found".to_owned();
     } else if let Some(e) = err.find::<BadRequest>() {
         code = StatusCode::BAD_REQUEST;
-        message = e.0.as_str();
+        message = e.0.to_owned();
     } else if let Some(_) = err.find::<InvalidTokenError>() {
         code = StatusCode::UNAUTHORIZED;
-        message = "Invalid Token";
+        message = "Invalid Token".to_owned();
+    } else if let Some(e) = err.find::<BodyDeserializeError>() {
+        code = StatusCode::BAD_REQUEST;
+        message = e.to_string();
     } else {
-        eprintln!("unhandled application error: {:?}", err);
+        tracing::info!("Unhandled application error: {:?}", err);
         code = StatusCode::INTERNAL_SERVER_ERROR;
-        message = "Internal Server Error";
+        message = "Internal Server Error".to_owned();
     }
 
     let json = warp::reply::json(&TaskResult {
-        error: Some(message.into()),
+        error: Some(message),
         solver: false,
         objects: vec![],
     });
