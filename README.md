@@ -97,6 +97,14 @@ Options:
 
 ### Example
 
+Run on docker
+
+```shell
+docker run --rm -it -p 8000:8000 --name=fcsrv \
+  -v $(pwd)/models:/models \
+  ghcr.io/gngpp/fcsrv:latest run --model-dir /models
+```
+
 ```shell
 curl --location 'http://127.0.0.1:8000/task' \
 --header 'Content-Type: application/json' \
