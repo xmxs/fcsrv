@@ -66,6 +66,8 @@ impl Serve {
             .recover(handle_rejection)
             .with(warp::trace::request());
 
+        tracing::info!("Listening on {}", self.0.bind);
+
         // Start the server
         match (self.0.tls_cert, self.0.tls_key) {
             (Some(cert), Some(key)) => {
@@ -73,11 +75,23 @@ impl Serve {
                     .tls()
                     .cert_path(cert)
                     .key_path(key)
-                    .run(self.0.bind)
+                    .bind_with_graceful_shutdown(self.0.bind, async {
+                        tokio::signal::ctrl_c()
+                            .await
+                            .expect("failed to install CTRL+C signal handler");
+                    })
+                    .1
                     .await;
             }
             _ => {
-                warp::serve(routes).run(self.0.bind).await;
+                warp::serve(routes)
+                    .bind_with_graceful_shutdown(self.0.bind, async {
+                        tokio::signal::ctrl_c()
+                            .await
+                            .expect("failed to install CTRL+C signal handler");
+                    })
+                    .1
+                    .await;
             }
         }
         Ok(())
