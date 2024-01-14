@@ -16,6 +16,8 @@ Currently supports the following models:
 
 - `3d_rollball_animals`
 - `3d_rollball_objects`
+- `coordinatesmatch`
+- `hopscotch_highsec`
 
 ### Usage
 
@@ -52,7 +54,8 @@ fcsrv update
 - `--tls-key`, TLS private key file
 - `--api-key`, API key
 - `--model-dir`, Funcaptcha model directory
-- `--num-threads`, Number of threads (ONNX Runtime session), default 1
+- `--num-threads`, Number of threads (ONNX Runtime), default 1
+- `--allocator`, Execution provider allocator e.g. device, arena (ONNX Runtime), default device
 
 ```shell
 $ fcsrv -h
@@ -87,7 +90,8 @@ Options:
       --tls-key <TLS_KEY>          TLS private key file
   -A, --api-key <API_KEY>          API key
       --model-dir <MODEL_DIR>      Funcaptcha model directory
-      --num-threads <NUM_THREADS>  Number of threads (ONNX Runtime session) [default: 1]
+      --num-threads <NUM_THREADS>  Number of threads (ONNX Runtime) [default: 1]
+      --allocator <ALLOCATOR>      Execution provider allocator e.g. device, arena (ONNX Runtime) [default: device]
   -h, --help                       Print help
 ```
 
