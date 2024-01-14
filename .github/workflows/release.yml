@@ -98,6 +98,6 @@ jobs:
         with:
           token: ${{ secrets.CR_PAT }}
           files: |
-            uploads/*
+            bin/*
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
           generate_release_notes: true
