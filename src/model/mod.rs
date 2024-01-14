@@ -15,6 +15,8 @@ use tokio::sync::OnceCell;
 static M3D_ROLLBALL_PREDICTOR: OnceCell<M3DRotationPredictor> = OnceCell::const_new();
 static COORDINATES_MATCH_PREDICTOR: OnceCell<coordinatesmatch::CoordinatesMatchPredictor> =
     OnceCell::const_new();
+static HOPSCOTCH_HIGHSEC_PREDICTOR: OnceCell<hopscotch_highsec::HopscotchHighsecPredictor> =
+    OnceCell::const_new();
 
 /// Predictor trait
 pub trait Predictor {
@@ -30,6 +32,9 @@ pub fn load_models(args: &BootArgs) -> Result<()> {
     COORDINATES_MATCH_PREDICTOR
         .set(coordinatesmatch::CoordinatesMatchPredictor::new(args)?)
         .map_err(|_| anyhow::anyhow!("failed to load models"))?;
+    HOPSCOTCH_HIGHSEC_PREDICTOR
+        .set(hopscotch_highsec::HopscotchHighsecPredictor::new(args)?)
+        .map_err(|_| anyhow::anyhow!("failed to load models"))?;
     Ok(())
 }
 
@@ -44,6 +49,10 @@ pub fn get_predictor(model_type: ModelType) -> Result<&'static dyn Predictor> {
             .get()
             .ok_or_else(|| anyhow::anyhow!("models not loaded"))?
             as &'static dyn Predictor,
+        ModelType::HopscotchHighsec => HOPSCOTCH_HIGHSEC_PREDICTOR
+            .get()
+            .ok_or_else(|| anyhow::anyhow!("models not loaded"))?
+            as &'static dyn Predictor,
     };
     Ok(predictor)
 }
@@ -53,6 +62,7 @@ pub enum ModelType {
     M3dRollballAnimals,
     M3dRollballObjects,
     Coordinatesmatch,
+    HopscotchHighsec,
 }
 
 impl<'de> Deserialize<'de> for ModelType {
@@ -66,12 +76,14 @@ impl<'de> Deserialize<'de> for ModelType {
             "3d_rollball_animals" => Ok(ModelType::M3dRollballAnimals),
             "3d_rollball_objects" => Ok(ModelType::M3dRollballObjects),
             "coordinatesmatch" => Ok(ModelType::Coordinatesmatch),
+            "hopscotch_highsec" => Ok(ModelType::HopscotchHighsec),
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &[
                     "3d_rollball_animals",
                     "3d_rollball_objects",
                     "coordinatesmatch",
+                    "hopscotch_highsec",
                 ],
             )),
         }
