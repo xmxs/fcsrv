@@ -71,7 +71,7 @@ pub struct BootArgs {
     #[clap(long, default_value = "1")]
     num_threads: u16,
 
-    /// Execution provider allocator (ONNX Runtime) e.g. device, arena
+    /// Execution provider allocator e.g. device, arena (ONNX Runtime)
     #[clap(long, default_value = "device", value_parser = alloc_parser)]
     allocator: ort::AllocatorType,
 }

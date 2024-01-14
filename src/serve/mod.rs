@@ -63,7 +63,8 @@ impl Serve {
             .unify()
             .and(warp::body::json())
             .and_then(handle_task)
-            .recover(handle_rejection);
+            .recover(handle_rejection)
+            .with(warp::trace::request());
 
         // Start the server
         match (self.0.tls_cert, self.0.tls_key) {
