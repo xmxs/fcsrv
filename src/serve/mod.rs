@@ -90,7 +90,7 @@ async fn handle_task(auth: Result<String, ()>, task: Task) -> Result<impl Reply,
     check_api_key(auth).await?;
 
     // Solve the task
-    match model::get_model_predictor(task.typed) {
+    match model::get_predictor(task.typed) {
         Ok(predictor) => {
             // decode the image
             let image = decode_image(task.image)
