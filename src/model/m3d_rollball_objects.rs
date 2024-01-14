@@ -1,4 +1,6 @@
-use std::{cmp::Ordering, path::Path};
+use std::cmp::Ordering;
+
+use crate::BootArgs;
 
 use super::{
     base::BaseModel,
@@ -14,12 +16,8 @@ pub struct M3DRotationPredictor(BaseModel);
 
 impl M3DRotationPredictor {
     /// Create a new instance of the M3DRotationPredictor
-    pub fn new(model_dir: Option<&Path>, num_threads: u16) -> Result<Self> {
-        Ok(Self(BaseModel::new(
-            "3d_rollball_objects_v2.onnx",
-            model_dir,
-            num_threads,
-        )?))
+    pub fn new(args: &BootArgs) -> Result<Self> {
+        Ok(Self(BaseModel::new("3d_rollball_objects_v2.onnx", args)?))
     }
 
     fn run_prediction(&self, left: &Array4<f32>, right: Array4<f32>) -> Result<Vec<f32>> {

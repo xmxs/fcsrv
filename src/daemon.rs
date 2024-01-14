@@ -37,7 +37,7 @@ pub fn check_root() {
 
 pub fn run(args: BootArgs) -> Result<()> {
     // Init model
-    model::load_models(args.model_dir.as_deref(), args.num_threads)?;
+    model::load_models(&args)?;
     Serve::new(args).run()
 }
 

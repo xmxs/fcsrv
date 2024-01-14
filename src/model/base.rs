@@ -11,23 +11,29 @@ use std::{
 };
 
 use crate::homedir;
+use crate::BootArgs;
 
 pub struct BaseModel(Session);
 
 impl BaseModel {
     /// Create a new instance of the BaseModel
-    pub fn new(onnx: &'static str, model_dir: Option<&Path>, num_threads: u16) -> Result<Self> {
-        let model_dir = model_dir.map(|x| x.to_owned()).unwrap_or_else(|| {
-            homedir::home_dir()
-                .unwrap_or(PathBuf::new())
-                .join(".funcaptcha_models")
-        });
+    pub fn new(onnx: &'static str, args: &BootArgs) -> Result<Self> {
+        let model_dir = args
+            .model_dir
+            .as_ref()
+            .map(|x| x.to_owned())
+            .unwrap_or_else(|| {
+                homedir::home_dir()
+                    .unwrap_or(PathBuf::new())
+                    .join(".funcaptcha_models")
+            });
 
         let model_file = Self::initialize_model(onnx, model_dir)?;
         let session = Session::builder()?
             .with_optimization_level(GraphOptimizationLevel::Level3)?
             .with_parallel_execution(false)?
-            .with_intra_threads(num_threads as i16)?
+            .with_intra_threads(args.num_threads as i16)?
+            .with_allocator(args.allocator)?
             .with_model_from_file(model_file)?;
         Ok(Self(session))
     }

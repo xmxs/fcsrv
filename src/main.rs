@@ -67,9 +67,13 @@ pub struct BootArgs {
     #[clap(long)]
     model_dir: Option<PathBuf>,
 
-    /// Number of threads (ONNX Runtime session)
+    /// Number of threads (ONNX Runtime)
     #[clap(long, default_value = "1")]
     num_threads: u16,
+
+    /// Execution provider allocator (ONNX Runtime) e.g. device, arena
+    #[clap(long, default_value = "device", value_parser = alloc_parser)]
+    allocator: ort::AllocatorType,
 }
 
 fn main() -> crate::Result<()> {
@@ -91,4 +95,12 @@ fn main() -> crate::Result<()> {
     };
 
     Ok(())
+}
+
+fn alloc_parser(s: &str) -> anyhow::Result<ort::AllocatorType> {
+    match s {
+        "device" => Ok(ort::AllocatorType::Device),
+        "arena" => Ok(ort::AllocatorType::Arena),
+        _ => anyhow::bail!("Invalid allocator type"),
+    }
 }

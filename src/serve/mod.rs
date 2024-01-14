@@ -13,9 +13,9 @@ use warp::filters::body::BodyDeserializeError;
 use warp::reject::{Reject, Rejection};
 use warp::reply::Reply;
 
-pub struct Serve(BootArgs);
-
 static API_KEY: OnceCell<Option<String>> = OnceCell::const_new();
+
+pub struct Serve(BootArgs);
 
 impl Serve {
     pub fn new(args: BootArgs) -> Self {
