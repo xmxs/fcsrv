@@ -133,4 +133,4 @@ jobs:
       - name: Build and push
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64/v8 -t ghcr.io/gngpp/fcsrv:latest . --push
+          docker buildx build --platform linux/amd64,linux/arm64/v8 -t ghcr.io/gngpp/fcsrv:latest -t ghcr.io/gngpp/fcsrv:${{ steps.tag.outputs.tag }} . --push
