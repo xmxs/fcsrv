@@ -63,7 +63,8 @@ impl Serve {
             .unify()
             .and(warp::body::json())
             .and_then(handle_task)
-            .recover(handle_rejection);
+            .recover(handle_rejection)
+            .with(warp::trace::request());
 
         // Start the server
         match (self.0.tls_cert, self.0.tls_key) {
@@ -89,7 +90,7 @@ async fn handle_task(auth: Result<String, ()>, task: Task) -> Result<impl Reply,
     check_api_key(auth).await?;
 
     // Solve the task
-    match model::get_model_predictor(task.typed) {
+    match model::get_predictor(task.typed) {
         Ok(predictor) => {
             // decode the image
             let image = decode_image(task.image)

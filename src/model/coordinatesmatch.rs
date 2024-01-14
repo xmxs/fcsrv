@@ -3,16 +3,16 @@ use crate::BootArgs;
 use anyhow::Result;
 use image::DynamicImage;
 
-pub struct M3DRotationPredictor(BaseModel);
+pub struct CoordinatesMatchPredictor(BaseModel);
 
-impl M3DRotationPredictor {
-    /// Create a new instance of the M3DRotationPredictor
+impl CoordinatesMatchPredictor {
+    /// Create a new instance of the CoordinatesMatchPredictor
     pub fn new(args: &BootArgs) -> Result<Self> {
-        Ok(Self(BaseModel::new("3d_rollball_objects_v2.onnx", args)?))
+        Ok(Self(BaseModel::new("coordinatesmatch.onnx", args)?))
     }
 }
 
-impl Predictor for M3DRotationPredictor {
+impl Predictor for CoordinatesMatchPredictor {
     fn predict(&self, image: DynamicImage) -> Result<i32> {
         self.0.predict(image)
     }
