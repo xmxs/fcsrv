@@ -21,7 +21,7 @@ Currently supports the following models:
 
 ### Usage
 
-Parallel image processing is enabled by default. If your CPU is very weak (referring to 0.1 CPU), please do not use it.
+> Parallel image processing is enabled by default. If your CPU is very weak (referring to 0.1 CPU), please do not use it.
 
 ```shell
 # Run
