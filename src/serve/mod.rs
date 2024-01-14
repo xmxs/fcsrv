@@ -12,6 +12,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::filters::body::BodyDeserializeError;
 use warp::reject::{Reject, Rejection};
 use warp::reply::Reply;
+use warp::Filter;
 
 static API_KEY: OnceCell<Option<String>> = OnceCell::const_new();
 
@@ -42,25 +43,8 @@ impl Serve {
         API_KEY.set(self.0.api_key)?;
 
         // Init routes
-        use warp::filters::BoxedFilter;
-        use warp::Filter;
-
-        fn with_auth() -> BoxedFilter<(Result<String, ()>,)> {
-            warp::header("authorization")
-                .map(|token: String| Ok(token))
-                .boxed()
-        }
-
-        fn default_auth() -> BoxedFilter<(Result<String, ()>,)> {
-            warp::path("task")
-                .and(warp::post())
-                .and(warp::any().map(|| Err(())))
-                .boxed()
-        }
-
-        let routes = with_auth()
-            .or(default_auth())
-            .unify()
+        let routes = warp::path("task")
+            .and(warp::post())
             .and(warp::body::json())
             .and_then(handle_task)
             .recover(handle_rejection)
@@ -99,9 +83,9 @@ impl Serve {
 }
 
 /// Handle the task
-async fn handle_task(auth: Result<String, ()>, task: Task) -> Result<impl Reply, Rejection> {
+async fn handle_task(task: Task) -> Result<impl Reply, Rejection> {
     // Check the API key
-    check_api_key(auth).await?;
+    check_api_key(task.api_key).await?;
 
     // Solve the task
     match model::get_predictor(task.typed) {
@@ -128,14 +112,14 @@ async fn handle_task(auth: Result<String, ()>, task: Task) -> Result<impl Reply,
 }
 
 /// Check the API key
-async fn check_api_key(auth: Result<String, ()>) -> Result<(), Rejection> {
-    if let Some(Some(api_key)) = API_KEY.get() {
-        if let Ok(token) = auth {
-            if !token.starts_with("Bearer ") || api_key.ne(&token["Bearer ".len()..]) {
-                return Err(warp::reject::custom(InvalidTokenError));
+async fn check_api_key(api_key: Option<String>) -> Result<(), Rejection> {
+    if let Some(Some(key)) = API_KEY.get() {
+        if let Some(api_key) = api_key {
+            if key.ne(&api_key) {
+                return Err(warp::reject::custom(InvalidTApiKeyError));
             }
         } else {
-            return Err(warp::reject::custom(InvalidTokenError));
+            return Err(warp::reject::custom(InvalidTApiKeyError));
         }
     }
     Ok(())
@@ -155,11 +139,11 @@ fn decode_image(base64_string: String) -> Result<DynamicImage> {
 struct BadRequest(String);
 
 #[derive(Debug)]
-struct InvalidTokenError;
+struct InvalidTApiKeyError;
 
 impl Reject for BadRequest {}
 
-impl Reject for InvalidTokenError {}
+impl Reject for InvalidTApiKeyError {}
 
 impl Reject for TaskResult {}
 
@@ -173,9 +157,9 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     } else if let Some(e) = err.find::<BadRequest>() {
         code = StatusCode::BAD_REQUEST;
         message = e.0.to_owned();
-    } else if let Some(_) = err.find::<InvalidTokenError>() {
+    } else if let Some(_) = err.find::<InvalidTApiKeyError>() {
         code = StatusCode::UNAUTHORIZED;
-        message = "Invalid Token".to_owned();
+        message = "Invalid API key".to_owned();
     } else if let Some(e) = err.find::<BodyDeserializeError>() {
         code = StatusCode::BAD_REQUEST;
         message = e.to_string();
