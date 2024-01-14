@@ -3,7 +3,6 @@ FROM rust:1.75 as builder
 WORKDIR /src
 
 COPY Cargo.toml Cargo.toml
-COPY Cargo.lock Cargo.lock
 COPY src src
 RUN cargo build --release
 
