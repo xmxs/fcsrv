@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct Task {
+    /// API key
+    pub api_key: Option<String>,
     /// model type, e.g. 3d_rollball_animals
     #[serde(rename = "type")]
     pub typed: ModelType,
