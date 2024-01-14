@@ -102,7 +102,7 @@ async fn handle_task(auth: Result<String, ()>, task: Task) -> Result<impl Reply,
 
             let result = TaskResult {
                 error: None,
-                solver: true,
+                solve: true,
                 objects: vec![objects as u32],
             };
             return Ok(warp::reply::json(&result));
@@ -173,7 +173,7 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
 
     let json = warp::reply::json(&TaskResult {
         error: Some(message),
-        solver: false,
+        solve: false,
         objects: vec![],
     });
 
