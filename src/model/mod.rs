@@ -1,6 +1,7 @@
-use std::{path::Path, str::FromStr};
+use std::str::FromStr;
 
 use self::m3d_rollball_objects::M3DRotationPredictor;
+use crate::BootArgs;
 use anyhow::Result;
 use serde::Deserialize;
 use tokio::sync::OnceCell;
@@ -12,8 +13,8 @@ mod m3d_rollball_objects;
 pub static M3D_ROLLBALL_PREDICTOR: OnceCell<M3DRotationPredictor> = OnceCell::const_new();
 
 /// Load the models
-pub fn load_models(model_dir: Option<&Path>, num_threads: u16) -> Result<()> {
-    let m3d_rotation_predictor = M3DRotationPredictor::new(model_dir, num_threads)?;
+pub fn load_models(args: &BootArgs) -> Result<()> {
+    let m3d_rotation_predictor = M3DRotationPredictor::new(args)?;
     M3D_ROLLBALL_PREDICTOR
         .set(m3d_rotation_predictor)
         .map_err(|_| anyhow::anyhow!("failed to load models"))?;
