@@ -101,3 +101,36 @@ jobs:
             bin/*
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
           generate_release_notes: true
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    environment: Docker
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Get tag
+        if: startsWith(github.ref, 'refs/tags/')
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+        with:
+          strip_v: true
+          
+      - name: Login to GitHub Container Registry
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: gngpp
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Build and push
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64/v8 -t ghcr.io/gngpp/fcsrv:latest . --push
