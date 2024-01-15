@@ -15,7 +15,6 @@ ort = "2.0.0-alpha.4"
 rayon = "1.8.0"
 serde_json = "1.0.111"
 sha2 = "0.10.8"
-ureq = "2.9.1"
 clap = { version = "4.4.14", features = ["derive", "env"] }
 self_update = { version = "0.39.0", default-features = false, features = ["rustls", "archive-tar", "compression-flate2"]  }
 reqwest = { version = "0.11.23", default-features = false, features = ["blocking", "rustls"] }
@@ -26,7 +25,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 serde = { version = "1.0.195", features = ["derive"] }
 base64 = "0.21.7"
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(target_os = "windows")'.dependencies.windows-sys]
 version = "0.48.0"
 default-features = false
 features = ["Win32_System_Com_CallObj", "Win32_Foundation", "Win32_Globalization", "Win32_UI_Shell_Common"]
