@@ -1,14 +1,17 @@
-use super::{base::BaseModel, Predictor};
+use super::{base::ImagePairClassifierPredictor, Predictor};
 use crate::BootArgs;
 use anyhow::Result;
 use image::DynamicImage;
 
-pub struct HopscotchHighsecPredictor(BaseModel);
+pub struct HopscotchHighsecPredictor(ImagePairClassifierPredictor);
 
 impl HopscotchHighsecPredictor {
     /// Create a new instance of the HopscotchHighsecPredictor
     pub fn new(args: &BootArgs) -> Result<Self> {
-        Ok(Self(BaseModel::new("hopscotch_highsec.onnx", args)?))
+        Ok(Self(ImagePairClassifierPredictor::new(
+            "hopscotch_highsec.onnx",
+            args,
+        )?))
     }
 }
 

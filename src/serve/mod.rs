@@ -8,7 +8,6 @@ use anyhow::Result;
 use image::DynamicImage;
 use reqwest::StatusCode;
 use tokio::sync::OnceCell;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::filters::body::BodyDeserializeError;
 use warp::reject::{Reject, Rejection};
 use warp::reply::Reply;
@@ -25,20 +24,6 @@ impl Serve {
 
     #[tokio::main]
     pub async fn run(self) -> Result<()> {
-        if self.0.debug {
-            std::env::set_var("RUST_LOG", "debug");
-        } else {
-            std::env::set_var("RUST_LOG", "info");
-        }
-        // Init tracing
-        tracing_subscriber::registry()
-            .with(
-                tracing_subscriber::EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| "RUST_LOG=info".into()),
-            )
-            .with(tracing_subscriber::fmt::layer())
-            .init();
-
         // Init API key
         API_KEY.set(self.0.api_key)?;
 
