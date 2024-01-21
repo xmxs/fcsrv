@@ -18,8 +18,8 @@ use crate::homedir;
 use crate::BootArgs;
 
 use super::image_processing::check_input_image_size;
-use super::image_processing::process_ans_image;
-use super::image_processing::process_image;
+use super::image_processing::process_pair_classifier_ans_image;
+use super::image_processing::process_pair_classifier_image;
 
 pub struct BaseModel(Session);
 
@@ -185,12 +185,12 @@ impl BaseModel {
         check_input_image_size(&image)?;
 
         let width = image.width();
-        let left = process_ans_image(&mut image, (52, 52))?;
+        let left = process_pair_classifier_ans_image(&mut image, (52, 52))?;
 
         let results: Result<Vec<(f32, i32)>> = (0..(width / 200))
             .into_par_iter()
             .map(|i| {
-                let right = process_image(&image, (0, i), (52, 52))?;
+                let right = process_pair_classifier_image(&image, (0, i), (52, 52))?;
                 let prediction = self.run_prediction(left.clone(), right)?;
                 let prediction_value = prediction[0];
                 Ok((prediction_value, i as i32))

@@ -11,7 +11,7 @@ pub fn check_input_image_size(image: &image::DynamicImage) -> Result<()> {
 }
 
 #[inline]
-pub fn process_ans_image(
+pub fn process_pair_classifier_ans_image(
     image: &mut image::DynamicImage,
     input_shape: (u32, u32),
 ) -> Result<Array4<f32>> {
@@ -35,7 +35,7 @@ pub fn process_ans_image(
 }
 
 #[inline]
-pub fn process_image(
+pub fn process_pair_classifier_image(
     image: &image::DynamicImage,
     index: (u32, u32),
     input_shape: (u32, u32),

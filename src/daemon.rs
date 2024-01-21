@@ -37,7 +37,7 @@ pub fn check_root() {
 
 pub fn run(args: BootArgs) -> Result<()> {
     // Init model
-    model::load_predictor(&args)?;
+    model::init_predictor(&args)?;
     Serve::new(args).run()
 }
 
