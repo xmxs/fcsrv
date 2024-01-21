@@ -18,6 +18,9 @@ Currently supports the following models:
 - `3d_rollball_objects`
 - `coordinatesmatch`
 - `hopscotch_highsec`
+- `train_coordinates`
+- `penguin`
+- `shadows`
 
 ### Usage
 
@@ -91,6 +94,7 @@ Options:
       --tls-cert <TLS_CERT>        TLS certificate file
       --tls-key <TLS_KEY>          TLS private key file
   -A, --api-key <API_KEY>          API key
+  -U, --update-check               Funcaptcha model update check
       --model-dir <MODEL_DIR>      Funcaptcha model directory
       --num-threads <NUM_THREADS>  Number of threads (ONNX Runtime) [default: 1]
       --allocator <ALLOCATOR>      Execution provider allocator e.g. device, arena (ONNX Runtime) [default: device]
