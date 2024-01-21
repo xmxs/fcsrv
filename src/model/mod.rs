@@ -3,10 +3,11 @@ mod coordinatesmatch;
 mod hopscotch_highsec;
 mod image_processing;
 mod m3d_rollball_objects;
+mod train_coordinates;
 
 use self::{
     coordinatesmatch::CoordinatesMatchPredictor, hopscotch_highsec::HopscotchHighsecPredictor,
-    m3d_rollball_objects::M3DRotationPredictor,
+    m3d_rollball_objects::M3DRotationPredictor, train_coordinates::TrainCoordinatesPredictor,
 };
 use crate::BootArgs;
 use anyhow::Result;
@@ -17,6 +18,7 @@ use tokio::sync::OnceCell;
 static M3D_ROLLBALL_PREDICTOR: OnceCell<M3DRotationPredictor> = OnceCell::const_new();
 static COORDINATES_MATCH_PREDICTOR: OnceCell<CoordinatesMatchPredictor> = OnceCell::const_new();
 static HOPSCOTCH_HIGHSEC_PREDICTOR: OnceCell<HopscotchHighsecPredictor> = OnceCell::const_new();
+static TRAIN_COORDINATES_PREDICTOR: OnceCell<TrainCoordinatesPredictor> = OnceCell::const_new();
 
 /// Predictor trait
 pub trait Predictor {
@@ -24,13 +26,16 @@ pub trait Predictor {
 }
 
 /// Load the models predictor
-pub fn load_predictor(args: &BootArgs) -> Result<()> {
+pub fn init_predictor(args: &BootArgs) -> Result<()> {
     set_predictor(&M3D_ROLLBALL_PREDICTOR, || M3DRotationPredictor::new(args))?;
     set_predictor(&COORDINATES_MATCH_PREDICTOR, || {
         CoordinatesMatchPredictor::new(args)
     })?;
     set_predictor(&HOPSCOTCH_HIGHSEC_PREDICTOR, || {
         HopscotchHighsecPredictor::new(args)
+    })?;
+    set_predictor(&TRAIN_COORDINATES_PREDICTOR, || {
+        train_coordinates::TrainCoordinatesPredictor::new(args)
     })?;
     Ok(())
 }
@@ -43,6 +48,7 @@ pub fn get_predictor(model_type: ModelType) -> Result<&'static dyn Predictor> {
         }
         ModelType::Coordinatesmatch => get_predictor_from_cell(&COORDINATES_MATCH_PREDICTOR)?,
         ModelType::HopscotchHighsec => get_predictor_from_cell(&HOPSCOTCH_HIGHSEC_PREDICTOR)?,
+        ModelType::TrainCoordinates => get_predictor_from_cell(&TRAIN_COORDINATES_PREDICTOR)?,
     };
     Ok(predictor)
 }
@@ -72,6 +78,7 @@ pub enum ModelType {
     M3dRollballObjects,
     Coordinatesmatch,
     HopscotchHighsec,
+    TrainCoordinates,
 }
 
 impl<'de> Deserialize<'de> for ModelType {
@@ -86,6 +93,7 @@ impl<'de> Deserialize<'de> for ModelType {
             "3d_rollball_objects" => Ok(ModelType::M3dRollballObjects),
             "coordinatesmatch" => Ok(ModelType::Coordinatesmatch),
             "hopscotch_highsec" => Ok(ModelType::HopscotchHighsec),
+            "train_coordinates" => Ok(ModelType::TrainCoordinates),
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &[
@@ -93,6 +101,7 @@ impl<'de> Deserialize<'de> for ModelType {
                     "3d_rollball_objects",
                     "coordinatesmatch",
                     "hopscotch_highsec",
+                    "train_coordinates",
                 ],
             )),
         }
