@@ -4,12 +4,13 @@ mod hopscotch_highsec;
 mod image_processing;
 mod m3d_rollball_objects;
 mod penguin;
+mod shadows;
 mod train_coordinates;
 
 use self::{
     coordinatesmatch::CoordinatesMatchPredictor, hopscotch_highsec::HopscotchHighsecPredictor,
     m3d_rollball_objects::M3DRotationPredictor, penguin::PenguinPredictor,
-    train_coordinates::TrainCoordinatesPredictor,
+    shadows::ShadowsPredictor, train_coordinates::TrainCoordinatesPredictor,
 };
 use crate::BootArgs;
 use anyhow::Result;
@@ -22,6 +23,7 @@ static COORDINATES_MATCH_PREDICTOR: OnceCell<CoordinatesMatchPredictor> = OnceCe
 static HOPSCOTCH_HIGHSEC_PREDICTOR: OnceCell<HopscotchHighsecPredictor> = OnceCell::const_new();
 static TRAIN_COORDINATES_PREDICTOR: OnceCell<TrainCoordinatesPredictor> = OnceCell::const_new();
 static PENGUIN_PREDICTOR: OnceCell<PenguinPredictor> = OnceCell::const_new();
+static SHADOWS_PREDICTOR: OnceCell<ShadowsPredictor> = OnceCell::const_new();
 
 /// Predictor trait
 pub trait Predictor {
@@ -41,6 +43,7 @@ pub fn init_predictor(args: &BootArgs) -> Result<()> {
         TrainCoordinatesPredictor::new(args)
     })?;
     set_predictor(&PENGUIN_PREDICTOR, || PenguinPredictor::new(args))?;
+    set_predictor(&SHADOWS_PREDICTOR, || ShadowsPredictor::new(args))?;
     Ok(())
 }
 
@@ -54,6 +57,7 @@ pub fn get_predictor(model_type: ModelType) -> Result<&'static dyn Predictor> {
         ModelType::HopscotchHighsec => get_predictor_from_cell(&HOPSCOTCH_HIGHSEC_PREDICTOR)?,
         ModelType::TrainCoordinates => get_predictor_from_cell(&TRAIN_COORDINATES_PREDICTOR)?,
         ModelType::Penguin => get_predictor_from_cell(&PENGUIN_PREDICTOR)?,
+        ModelType::Shadows => get_predictor_from_cell(&SHADOWS_PREDICTOR)?,
     };
     Ok(predictor)
 }
@@ -85,6 +89,7 @@ pub enum ModelType {
     HopscotchHighsec,
     TrainCoordinates,
     Penguin,
+    Shadows,
 }
 
 impl<'de> Deserialize<'de> for ModelType {
@@ -101,6 +106,7 @@ impl<'de> Deserialize<'de> for ModelType {
             "hopscotch_highsec" => Ok(ModelType::HopscotchHighsec),
             "train_coordinates" => Ok(ModelType::TrainCoordinates),
             "penguin" => Ok(ModelType::Penguin),
+            "shadows" => Ok(ModelType::Shadows),
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &[
@@ -110,6 +116,7 @@ impl<'de> Deserialize<'de> for ModelType {
                     "hopscotch_highsec",
                     "train_coordinates",
                     "penguin",
+                    "shadows",
                 ],
             )),
         }
