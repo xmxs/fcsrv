@@ -63,6 +63,10 @@ pub struct BootArgs {
     #[clap(short = 'A', long)]
     api_key: Option<String>,
 
+    /// Funcaptcha model update check
+    #[clap(short = 'U', long)]
+    update_check: bool,
+
     /// Funcaptcha model directory
     #[clap(long)]
     model_dir: Option<PathBuf>,

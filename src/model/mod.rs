@@ -3,11 +3,13 @@ mod coordinatesmatch;
 mod hopscotch_highsec;
 mod image_processing;
 mod m3d_rollball_objects;
+mod penguin;
 mod train_coordinates;
 
 use self::{
     coordinatesmatch::CoordinatesMatchPredictor, hopscotch_highsec::HopscotchHighsecPredictor,
-    m3d_rollball_objects::M3DRotationPredictor, train_coordinates::TrainCoordinatesPredictor,
+    m3d_rollball_objects::M3DRotationPredictor, penguin::PenguinPredictor,
+    train_coordinates::TrainCoordinatesPredictor,
 };
 use crate::BootArgs;
 use anyhow::Result;
@@ -19,6 +21,7 @@ static M3D_ROLLBALL_PREDICTOR: OnceCell<M3DRotationPredictor> = OnceCell::const_
 static COORDINATES_MATCH_PREDICTOR: OnceCell<CoordinatesMatchPredictor> = OnceCell::const_new();
 static HOPSCOTCH_HIGHSEC_PREDICTOR: OnceCell<HopscotchHighsecPredictor> = OnceCell::const_new();
 static TRAIN_COORDINATES_PREDICTOR: OnceCell<TrainCoordinatesPredictor> = OnceCell::const_new();
+static PENGUIN_PREDICTOR: OnceCell<PenguinPredictor> = OnceCell::const_new();
 
 /// Predictor trait
 pub trait Predictor {
@@ -35,8 +38,9 @@ pub fn init_predictor(args: &BootArgs) -> Result<()> {
         HopscotchHighsecPredictor::new(args)
     })?;
     set_predictor(&TRAIN_COORDINATES_PREDICTOR, || {
-        train_coordinates::TrainCoordinatesPredictor::new(args)
+        TrainCoordinatesPredictor::new(args)
     })?;
+    set_predictor(&PENGUIN_PREDICTOR, || PenguinPredictor::new(args))?;
     Ok(())
 }
 
@@ -49,6 +53,7 @@ pub fn get_predictor(model_type: ModelType) -> Result<&'static dyn Predictor> {
         ModelType::Coordinatesmatch => get_predictor_from_cell(&COORDINATES_MATCH_PREDICTOR)?,
         ModelType::HopscotchHighsec => get_predictor_from_cell(&HOPSCOTCH_HIGHSEC_PREDICTOR)?,
         ModelType::TrainCoordinates => get_predictor_from_cell(&TRAIN_COORDINATES_PREDICTOR)?,
+        ModelType::Penguin => get_predictor_from_cell(&PENGUIN_PREDICTOR)?,
     };
     Ok(predictor)
 }
@@ -79,6 +84,7 @@ pub enum ModelType {
     Coordinatesmatch,
     HopscotchHighsec,
     TrainCoordinates,
+    Penguin,
 }
 
 impl<'de> Deserialize<'de> for ModelType {
@@ -94,6 +100,7 @@ impl<'de> Deserialize<'de> for ModelType {
             "coordinatesmatch" => Ok(ModelType::Coordinatesmatch),
             "hopscotch_highsec" => Ok(ModelType::HopscotchHighsec),
             "train_coordinates" => Ok(ModelType::TrainCoordinates),
+            "penguin" => Ok(ModelType::Penguin),
             _ => Err(serde::de::Error::unknown_variant(
                 &s,
                 &[
@@ -102,6 +109,7 @@ impl<'de> Deserialize<'de> for ModelType {
                     "coordinatesmatch",
                     "hopscotch_highsec",
                     "train_coordinates",
+                    "penguin",
                 ],
             )),
         }

@@ -4,6 +4,7 @@ use std::{
     os::unix::fs::PermissionsExt,
     path::Path,
 };
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use daemonize::Daemonize;
 
@@ -36,6 +37,19 @@ pub fn check_root() {
 }
 
 pub fn run(args: BootArgs) -> Result<()> {
+    if args.debug {
+        std::env::set_var("RUST_LOG", "debug");
+    } else {
+        std::env::set_var("RUST_LOG", "info");
+    }
+    // Init tracing
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "RUST_LOG=info".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
     // Init model
     model::init_predictor(&args)?;
     Serve::new(args).run()

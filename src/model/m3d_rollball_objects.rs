@@ -1,14 +1,17 @@
-use super::{base::BaseModel, Predictor};
+use super::{base::ImagePairClassifierPredictor, Predictor};
 use crate::BootArgs;
 use anyhow::Result;
 use image::DynamicImage;
 
-pub struct M3DRotationPredictor(BaseModel);
+pub struct M3DRotationPredictor(ImagePairClassifierPredictor);
 
 impl M3DRotationPredictor {
     /// Create a new instance of the M3DRotationPredictor
     pub fn new(args: &BootArgs) -> Result<Self> {
-        Ok(Self(BaseModel::new("3d_rollball_objects_v2.onnx", args)?))
+        Ok(Self(ImagePairClassifierPredictor::new(
+            "3d_rollball_objects_v2.onnx",
+            args,
+        )?))
     }
 }
 
