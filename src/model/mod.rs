@@ -26,7 +26,7 @@ static PENGUIN_PREDICTOR: OnceCell<PenguinPredictor> = OnceCell::const_new();
 static SHADOWS_PREDICTOR: OnceCell<ShadowsPredictor> = OnceCell::const_new();
 
 /// Predictor trait
-pub trait Predictor {
+pub trait Predictor: Send + Sync {
     fn predict(&self, image: DynamicImage) -> Result<i32>;
 }
 

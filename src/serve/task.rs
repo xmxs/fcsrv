@@ -10,8 +10,8 @@ pub struct Task {
     /// model type, e.g. 3d_rollball_animals
     #[serde(rename = "type")]
     pub typed: ModelType,
-    /// base64 image, e.g. /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkS
-    pub image: String,
+    /// base64 image list, e.g. ["/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkS"]
+    pub images: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]

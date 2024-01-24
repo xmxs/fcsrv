@@ -6,6 +6,7 @@ use self::task::{Task, TaskResult};
 use crate::{model, BootArgs};
 use anyhow::Result;
 use image::DynamicImage;
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use reqwest::StatusCode;
 use tokio::sync::OnceCell;
 use warp::filters::body::BodyDeserializeError;
@@ -75,18 +76,25 @@ async fn handle_task(task: Task) -> Result<impl Reply, Rejection> {
     // Solve the task
     match model::get_predictor(task.typed) {
         Ok(predictor) => {
-            // decode the image
-            let image = decode_image(task.image)
+            let mut objects = task
+                .images
+                .into_par_iter()
+                .enumerate()
+                .map(|(index, image)| {
+                    // decode the image
+                    let image = decode_image(image)?;
+                    let answer = predictor.predict(image)?;
+                    Ok((index, answer as u32))
+                })
+                .collect::<Result<Vec<(usize, u32)>>>()
                 .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
 
-            let objects = predictor
-                .predict(image)
-                .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
+            objects.sort_by_key(|&(index, _)| index);
 
             let result = TaskResult {
                 error: None,
                 solve: true,
-                objects: vec![objects as u32],
+                objects: objects.into_iter().map(|(_, answer)| answer).collect(),
             };
             return Ok(warp::reply::json(&result));
         }

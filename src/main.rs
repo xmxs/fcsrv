@@ -63,6 +63,10 @@ pub struct BootArgs {
     #[clap(short = 'A', long)]
     api_key: Option<String>,
 
+    /// Multiple image submission limits
+    #[clap(short = 'M', long, default_value = "3")]
+    multi_image_limit: usize,
+
     /// Funcaptcha model update check
     #[clap(short = 'U', long)]
     update_check: bool,
