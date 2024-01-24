@@ -117,8 +117,8 @@ impl ImageClassifierPredictor {
         let predictions = predictions?;
         let (_, max_index) = predictions
             .into_iter()
-            .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            .unwrap();
+            .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal))
+            .unwrap_or((f32::NEG_INFINITY, 0));
 
         Ok(max_index as i32)
     }
