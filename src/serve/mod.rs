@@ -15,6 +15,7 @@ use warp::reply::Reply;
 use warp::Filter;
 
 static API_KEY: OnceCell<Option<String>> = OnceCell::const_new();
+static SUBMIT_LIMIT: OnceCell<Option<usize>> = OnceCell::const_new();
 
 pub struct Serve(BootArgs);
 
@@ -27,6 +28,9 @@ impl Serve {
     pub async fn run(self) -> Result<()> {
         // Init API key
         API_KEY.set(self.0.api_key)?;
+
+        // Init submit limit
+        SUBMIT_LIMIT.set(Some(self.0.multi_image_limit))?;
 
         // Init routes
         let routes = warp::path("task")
@@ -72,29 +76,45 @@ impl Serve {
 async fn handle_task(task: Task) -> Result<impl Reply, Rejection> {
     // Check the API key
     check_api_key(task.api_key).await?;
+    // Check the submit limit
+    check_submit_limit(task.images.len()).await?;
 
     // Solve the task
     match model::get_predictor(task.typed) {
         Ok(predictor) => {
-            let mut objects = task
-                .images
-                .into_par_iter()
-                .enumerate()
-                .map(|(index, image)| {
-                    // decode the image
-                    let image = decode_image(image)?;
-                    let answer = predictor.predict(image)?;
-                    Ok((index, answer as u32))
-                })
-                .collect::<Result<Vec<(usize, u32)>>>()
-                .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
+            let objects = if task.images.len() == 1 {
+                let image = decode_image(&task.images[0])
+                    .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
+                let answer = predictor
+                    .predict(image)
+                    .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
 
-            objects.sort_by_key(|&(index, _)| index);
+                vec![answer as u32]
+            } else {
+                let mut objects = task
+                    .images
+                    .into_par_iter()
+                    .enumerate()
+                    .map(|(index, image)| {
+                        // decode the image
+                        let image = decode_image(&image)?;
+                        let answer = predictor.predict(image)?;
+                        Ok((index, answer as u32))
+                    })
+                    .collect::<Result<Vec<(usize, u32)>>>()
+                    .map_err(|e| warp::reject::custom(BadRequest(e.to_string())))?;
+
+                objects.sort_by_key(|&(index, _)| index);
+                objects
+                    .into_iter()
+                    .map(|(_, answer)| answer)
+                    .collect::<Vec<u32>>()
+            };
 
             let result = TaskResult {
                 error: None,
                 solve: true,
-                objects: objects.into_iter().map(|(_, answer)| answer).collect(),
+                objects,
             };
             return Ok(warp::reply::json(&result));
         }
@@ -118,12 +138,22 @@ async fn check_api_key(api_key: Option<String>) -> Result<(), Rejection> {
     Ok(())
 }
 
+/// Check the submit limit
+async fn check_submit_limit(len: usize) -> Result<(), Rejection> {
+    if let Some(Some(limit)) = SUBMIT_LIMIT.get() {
+        if len > *limit {
+            return Err(warp::reject::custom(InvalidTApiKeyError));
+        }
+    }
+    Ok(())
+}
+
 /// Decode the base64 image
-fn decode_image(base64_string: String) -> Result<DynamicImage> {
+fn decode_image(base64_string: &String) -> Result<DynamicImage> {
     // base64 decode the image
     use base64::{engine::general_purpose, Engine as _};
     let image_bytes = general_purpose::STANDARD
-        .decode(base64_string.split(',').nth(1).unwrap_or(&base64_string))?;
+        .decode(base64_string.split(',').nth(1).unwrap_or(base64_string))?;
     // convert the bytes to an image
     Ok(image::load_from_memory(&image_bytes)?)
 }
@@ -134,9 +164,14 @@ struct BadRequest(String);
 #[derive(Debug)]
 struct InvalidTApiKeyError;
 
+#[derive(Debug)]
+struct InvalidSubmitLimitError;
+
 impl Reject for BadRequest {}
 
 impl Reject for InvalidTApiKeyError {}
+
+impl Reject for InvalidSubmitLimitError {}
 
 impl Reject for TaskResult {}
 
@@ -156,6 +191,13 @@ async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     } else if let Some(e) = err.find::<BodyDeserializeError>() {
         code = StatusCode::BAD_REQUEST;
         message = e.to_string();
+    } else if let Some(_) = err.find::<InvalidSubmitLimitError>() {
+        code = StatusCode::BAD_REQUEST;
+        if let Some(limit) = SUBMIT_LIMIT.get() {
+            message = format!("Invalid submit limit: {}", limit.unwrap_or(0));
+        } else {
+            message = "Invalid submit limit".to_owned();
+        }
     } else {
         tracing::info!("Unhandled application error: {:?}", err);
         code = StatusCode::INTERNAL_SERVER_ERROR;
