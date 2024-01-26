@@ -142,7 +142,7 @@ async fn check_api_key(api_key: Option<String>) -> Result<(), Rejection> {
 async fn check_submit_limit(len: usize) -> Result<(), Rejection> {
     if let Some(Some(limit)) = SUBMIT_LIMIT.get() {
         if len > *limit {
-            return Err(warp::reject::custom(InvalidTApiKeyError));
+            return Err(warp::reject::custom(InvalidSubmitLimitError));
         }
     }
     Ok(())
