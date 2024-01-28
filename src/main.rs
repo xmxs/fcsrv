@@ -8,6 +8,7 @@ mod update;
 
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
+pub use homedir::setting_dir;
 use std::{net::SocketAddr, path::PathBuf};
 
 #[derive(Parser)]
