@@ -1,3 +1,11 @@
+#[cfg(not(target_os = "windows"))]
+static USER_HOME: OnceLock<PathBuf> = OnceLock::new();
+
+#[cfg(not(target_os = "windows"))]
+pub fn setting_dir(dir: PathBuf) {
+    let _ = USER_HOME.get_or_init(|| dir);
+}
+
 #[cfg(target_os = "windows")]
 mod home_dir_windows {
     use {
@@ -45,9 +53,14 @@ mod home_dir_ne_windows {
     /// let path = simple_home_dir::home_dir().unwrap();
     /// ```
     pub fn home_dir() -> Option<PathBuf> {
+        if let Some(home) = super::USER_HOME.get() {
+            return Some(home.clone());
+        }
         var_os(HOME).map(Into::into)
     }
 }
+
+use std::{path::PathBuf, sync::OnceLock};
 
 #[cfg(target_os = "windows")]
 pub use home_dir_windows::*;
