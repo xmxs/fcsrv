@@ -1,6 +1,6 @@
-use std::path::PathBuf;
 use fcsrv::{model::ModelType, BootArgs};
 use ort::AllocatorType;
+use std::path::PathBuf;
 
 fn main() {
     fcsrv::model::init_predictor(&BootArgs {

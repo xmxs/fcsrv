@@ -4,7 +4,12 @@ use ndarray::Array4;
 use ort::{GraphOptimizationLevel, Session};
 use sha2::Digest;
 use sha2::Sha256;
-use std::{collections::HashMap, f32, fs, io::{Read, Write}, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    f32, fs,
+    io::{Read, Write},
+    path::{Path, PathBuf},
+};
 
 use crate::homedir;
 use crate::BootArgs;
@@ -92,7 +97,7 @@ impl ImageClassifierPredictor {
         let mut max_prediction = f32::NEG_INFINITY;
         let mut max_index: i32 = -1;
 
-        for i in 0..6  {
+        for i in 0..6 {
             let ts = process_classifier_image(&mut image, i, (52, 52))?;
 
             let prediction = self.run_prediction(ts)?;
