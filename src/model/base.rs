@@ -33,7 +33,7 @@ impl ImageClassifierPredictor {
 
 impl ImagePairClassifierPredictor {
     /// Run prediction on the model
-    pub fn run_prediction(&self, left: Array4<f64>, right: Array4<f64>) -> Result<Vec<f32>> {
+    pub fn run_prediction(&self, left: Array4<f32>, right: Array4<f32>) -> Result<Vec<f32>> {
         let inputs = ort::inputs! {
             "input_left" => left,
             "input_right" => right,
