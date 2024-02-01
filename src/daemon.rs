@@ -58,6 +58,8 @@ pub fn run(args: BootArgs) -> Result<()> {
 /// Start the daemon
 #[cfg(target_family = "unix")]
 pub fn start(args: BootArgs) -> Result<()> {
+    use crate::homedir::setting_dir;
+
     if let Some(pid) = get_pid() {
         println!("fcsrv is already running with pid: {}", pid);
         return Ok(());
@@ -85,7 +87,7 @@ pub fn start(args: BootArgs) -> Result<()> {
     if let Ok(user) = std::env::var("SUDO_USER") {
         if let Ok(Some(real_user)) = nix::unistd::User::from_name(&user) {
             #[cfg(not(target_os = "windows"))]
-            super::setting_dir(real_user.dir);
+            setting_dir(real_user.dir);
             daemonize = daemonize
                 .user(real_user.name.as_str())
                 .group(real_user.gid.as_raw());
