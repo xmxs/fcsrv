@@ -5,23 +5,31 @@ use tokio::fs::read_dir;
 
 #[tokio::main]
 async fn main() {
-    let root_dir = "/Users/gngpp/VSCode/fcsrv/images/3d_rollball_animals";
-    // 读取images文件夹所有.jpg文件名，返回Vec<String>
-    let mut dir = read_dir(root_dir).await.unwrap();
+    let mut dir = read_dir("images").await.unwrap();
     let mut dir_child = Vec::new();
     while let Some(entry) = dir.next_entry().await.unwrap() {
         let filename = entry.file_name().to_str().unwrap().to_string();
+        dir_child.push((entry.path(), filename));
+    }
+    for (path, filename) in dir_child {
+        group_example(path, &filename).await
+    }
+}
+
+async fn group_example(path: PathBuf, typed: &str) {
+    // 读取images文件夹所有.jpg文件名，返回Vec<String>
+    let mut dir = read_dir(&path).await.unwrap();
+    let mut files = Vec::new();
+    while let Some(entry) = dir.next_entry().await.unwrap() {
+        let filename = entry.file_name().to_str().unwrap().to_string();
         if filename.contains(".jpg") {
-            dir_child.push(filename);
+            files.push(filename);
         }
     }
 
     let client = reqwest::Client::new();
-    for chunk in dir_child.chunks(5) {
-        let paths: Vec<PathBuf> = chunk
-            .iter()
-            .map(|p| PathBuf::from(root_dir).join(p))
-            .collect();
+    for chunk in files.chunks(5) {
+        let paths: Vec<PathBuf> = chunk.iter().map(|p| PathBuf::from(&path).join(p)).collect();
         for filepath in paths {
             let bytes = tokio::fs::read(&filepath).await.unwrap();
             #[allow(deprecated)]
@@ -30,7 +38,7 @@ async fn main() {
                 .post("http://127.0.0.1:8000/task")
                 .json(&json!(
                     {
-                        "type": "coordinatesmatch",
+                        "type": typed,
                         "images": [image],
                     }
                 ))
